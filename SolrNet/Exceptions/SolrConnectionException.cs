@@ -15,37 +15,53 @@
 #endregion
 
 using System;
+using System.Net;
 using System.Runtime.Serialization;
 
-namespace SolrNet.Exceptions {
+namespace SolrNet.Exceptions
+{
     /// <summary>
     /// Error connecting to Solr. See inner exception for more information.
     /// </summary>
     [Serializable]
-	public class SolrConnectionException : SolrNetException {
+    public class SolrConnectionException : SolrNetException
+    {
         private readonly string url;
+        private readonly HttpStatusCode solrHttpStatusCode;
 
-        public string Url {
+        public string Url
+        {
             get { return url; }
         }
 
         /// <summary>
+        /// HttpStatusCode returned from Solr server
+        /// </summary>
+        public HttpStatusCode SolrHttpStatusCode
+        {
+            get { return solrHttpStatusCode; }
+        }
+
+
+        /// <summary>
         /// Error connecting to Solr.
         /// </summary>
         /// <param name="message"></param>
-		public SolrConnectionException(string message) : base(message) {}
+        public SolrConnectionException(string message) : base(message) { }
 
         /// <summary>
         /// Error connecting to Solr.
         /// </summary>
         /// <param name="innerException"></param>
-		public SolrConnectionException(Exception innerException) : base(innerException) {}
+        public SolrConnectionException(Exception innerException) : base(innerException) { }
 
         /// <summary>
         /// Error connecting to Solr.
         /// </summary>
         /// <param name="innerException"></param>
-        public SolrConnectionException(Exception innerException, string url) : base(innerException) {
+        public SolrConnectionException(Exception innerException, string url)
+            : base(innerException)
+        {
             this.url = url;
         }
 
@@ -54,21 +70,38 @@ namespace SolrNet.Exceptions {
         /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-		public SolrConnectionException(string message, Exception innerException) : base(message, innerException) {}
+        public SolrConnectionException(string message, Exception innerException) : base(message, innerException) { }
 
         /// <summary>
         /// Error connecting to Solr.
         /// </summary>
         /// <param name="message"></param>
         /// <param name="innerException"></param>
-        public SolrConnectionException(string message, Exception innerException, string url) : base(message, innerException) {
+        public SolrConnectionException(string message, Exception innerException, string url)
+            : base(message, innerException)
+        {
             this.url = url;
+        }
+
+
+        /// <summary>
+        /// Error connecting to Solr.
+        /// </summary>
+        /// <param name="message">Exception message</param>
+        /// <param name="innerException">Inner exception</param>
+        /// <param name="url">Solr server url</param>
+        /// <param name="solrHttpStatusCode">HttpStatusCode return by Solr server</param>
+        public SolrConnectionException(string message, Exception innerException, string url, HttpStatusCode solrHttpStatusCode)
+            : base(message, innerException)
+        {
+            this.url = url;
+            this.solrHttpStatusCode = solrHttpStatusCode;
         }
 
         /// <summary>
         /// Error connecting to Solr.
         /// </summary>
-		public SolrConnectionException() {}
-        protected SolrConnectionException(SerializationInfo info, StreamingContext context) : base(info, context) {}
-	}
+        public SolrConnectionException() { }
+        protected SolrConnectionException(SerializationInfo info, StreamingContext context) : base(info, context) { }
+    }
 }
