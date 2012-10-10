@@ -111,10 +111,20 @@ namespace SolrNet.Impl {
                 return GetResponse(request).Data;
             } catch (WebException e) {
                 var msg = e.Message;
-                if (e.Response != null) {
-                    using (var s = e.Response.GetResponseStream())
-                    using (var sr = new StreamReader(s))
-                        msg = sr.ReadToEnd();
+
+                if (e.Response != null)
+                {
+                    HttpStatusCode solrHttpStatusCode;
+                    using (e.Response)
+                    {
+                        using (var s = e.Response.GetResponseStream())
+                        using (var sr = new StreamReader(s))
+                            msg = sr.ReadToEnd();
+
+                        solrHttpStatusCode = (new HttpWebResponseAdapter(e.Response)).StatusCode;
+                    }
+
+                    throw new SolrConnectionException(msg, e, request.RequestUri.ToString(), solrHttpStatusCode);
                 }
                 throw new SolrConnectionException(msg, e, request.RequestUri.ToString());
             }
@@ -151,19 +161,27 @@ namespace SolrNet.Impl {
                     Cache.Add(new SolrCacheEntity(u.Uri.ToString(), response.ETag, response.Data));
                 return response.Data;
             } catch (WebException e) {
-                if (e.Response != null) {
-                    using (e.Response) {
+                var msg = e.Message;
+
+                if (e.Response != null)
+                {
+                    HttpStatusCode solrHttpStatusCode;
+                    using (e.Response)
+                    {
                         var r = new HttpWebResponseAdapter(e.Response);
-                        if (r.StatusCode == HttpStatusCode.NotModified) {
+                        solrHttpStatusCode = r.StatusCode;
+                        if (solrHttpStatusCode == HttpStatusCode.NotModified)
                             return cached.Data;
-                        }
+
                         using (var s = e.Response.GetResponseStream())
-                        using (var sr = new StreamReader(s)) {
-                            throw new SolrConnectionException(sr.ReadToEnd(), e, u.Uri.ToString());
-                        }
+                        using (var sr = new StreamReader(s))
+                            msg = sr.ReadToEnd();
                     }
+
+                    throw new SolrConnectionException(msg, e, u.Uri.ToString(), solrHttpStatusCode);
                 }
-                throw new SolrConnectionException(e, u.Uri.ToString());
+
+                throw new SolrConnectionException(msg, e, u.Uri.ToString());
             }
         }
 
