@@ -102,6 +102,42 @@ namespace AutofacContrib.SolrNet.Tests
             Assert.IsTrue(solrOperations2 is SolrServer<Entity2>);
         }
 
+
+        [Test]
+        public void ResolveSolrOperations_withNamedMultiCore_sameDocumentType() 
+        {
+            var readCoreId = "entity1_readcore";
+            var writeCoreId = "entity1_writecore";
+
+            // Arrange 
+            var builder = new ContainerBuilder();
+            var cores = new SolrServers {
+                                new SolrServerElement {
+                                        Id = readCoreId,
+                                        DocumentType = typeof (Entity1).AssemblyQualifiedName,
+                                        Url = "http://localhost:8983/solr/readcoreEntity1",
+                                    },
+                               new SolrServerElement {
+                                        Id = writeCoreId,
+                                        DocumentType = typeof (Entity1).AssemblyQualifiedName,
+                                        Url = "http://localhost:8983/solr/writecoreEntity1",
+                                },
+                            };
+
+            builder.RegisterModule(new SolrNetModule(cores));
+            var container = builder.Build();
+
+            // Act
+            var readSolrOperations = container.ResolveNamed<ISolrOperations<Entity1>>(readCoreId);
+            var writeSolrOperations = container.ResolveNamed<ISolrOperations<Entity1>>(writeCoreId);
+            var solrReadOnlyOperations = container.ResolveNamed<ISolrReadOnlyOperations<Entity1>>(readCoreId);
+
+            // Assert
+            Assert.IsTrue(readSolrOperations is SolrServer<Entity1>);
+            Assert.IsTrue(writeSolrOperations is SolrServer<Entity1>);
+            Assert.IsTrue(solrReadOnlyOperations is SolrServer<Entity1>);
+        }
+
         [Test]
         public void ResolveSolrOperations_fromConfigSection()
         {
